@@ -4,37 +4,46 @@ import json
 import ssl
 import logging
 
+"""
+@PARAMS : event -  Contains the request body.
+
+Since this is a lambda function so i'm mapping others details also in the event parameter like header, request body and others.
+
+"""
 
 def lambda_handler(event, context):
     logging.info(event)
     try:
         if hasattr(ssl, '_create_unverified_context'):
             ssl._create_default_https_context = ssl._create_unverified_context
+            
+        
+        #pass the wsdl location thr environment variable.
 
         url= os.environ['url']
         c = Client(
             url,
             faults=False
         )
-        query_string_app_number = event['app_num'].strip()
+        param = event['parameter'].strip()
         # check if the query param is numeric
-        if query_string_app_number.isnumeric():
+        if param.isnumeric():
 
-            res = c.service.fetchAppNumsForSS(query_string_app_number)
+            res = c.service.yoursoapmethod(param)
 
             # fetching the status code from response
             status_code = res[0]
 
-            # App Number Computation
-            appNumbers = " "
-            appNumbers = appNumbers.join(res[1:])
-            appNumbers = appNumbers.replace(" ", ",")
+            # parameter_ Computation
+            parameter_ = " "
+            parameter_ = parameter_.join(res[1:])
+            parameter_ = parameter_.replace(" ", ",")
             print(f"status code:{status_code}")
-            print(f"raw response: {appNumbers}")
+            print(f"raw response: {parameter_}")
 
             if status_code == 200:
                 response = {
-                    "fetchAppNumsForSSReturn": appNumbers
+                    "message": parameter_
                 }
                 print(response)
                 return response
@@ -46,7 +55,7 @@ def lambda_handler(event, context):
                 return response
             else:
                 return {
-                    "message": appNumbers
+                    "message": parameter_
                 }
         else:
             return {
